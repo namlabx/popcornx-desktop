@@ -124,6 +124,7 @@
       this.loadComponents();
       this.initKeyboardShortcuts();
       healthButton.render();
+      Common.checkStreamsProvider();
 
       if (curSynopsis.vstatus !== null && curSynopsis.cast === '') {
         this.showCast();

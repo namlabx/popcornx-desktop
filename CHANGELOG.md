@@ -1,3 +1,28 @@
+## 0.6.0 - 01 September 2026
+
+New Features:
+- Added Cinemeta & Kitsu metadata provider integrations for Movies, TV Series, and Anime.
+- Added support for Stremio Stream Protocol addons (e.g. Torrentio) for on-demand streams and torrents resolution.
+- Added decentralized API Server(s) settings allowing users to freely configure metadata and stream endpoints.
+- Abstracted and introduced `CinemetaBase` parent provider class for unified, DRY stream parsing and tracker management.
+- Added GitHub Actions CI/CD workflows for automated cross-platform builds and releases (Windows, macOS Intel/Apple Silicon, Linux).
+- Added support for packaging Apple Silicon (`osxarm64`) and Windows ARM64 builds.
+- Implemented `fileIdx` support for Stremio/Torrentio streams to accurately select specific files in multi-episode/full-season torrents.
+- Improved `selectFile` logic in the streamer to prioritize provider-defined file indexes over heuristic guessing.
+
+Bug Fixes:
+- Fixed `TypeError: Cannot read properties of undefined (reading 'poster')` in Bookmarks/Favorites for Anime/Kitsu items.
+- Fixed quality selector and audio language state handling when navigating back to movie details.
+- Fixed Season count display to accurately reflect seasons in detail view while hiding placeholder season badges on the catalog grid.
+- Fixed missing Streams Provider notification prompting user to configure stream endpoint directly from movie/show details.
+
+Improvements & Maintenance:
+- Added interactive JSON schema guide and syntax-highlighted example in the API Server(s) Settings UI.
+- Implemented immediate in-memory settings synchronization across NW.js node/DOM contexts with restart prompt.
+- Updated default torrent tracker lists for faster peer discovery and playback initiation.
+- Updated dependencies (`cross-spawn`, `ws`, `send`, `semver`, `nw-builder`).
+- Cleaned up obsolete scrapers and modernized project documentation.
+
 ## 0.5.1 - Now.. Bring me that Horizon - 16 April 2024
 
 New Features:

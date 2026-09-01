@@ -39,10 +39,11 @@
         this.model.get('imdb_id'),
         this.model.get('title')
       );
+      var defaultAudio = this.model.get('defaultAudio') || 'en';
       if (!this.model.get('langs')) {
-        this.model.set('langs', { en: this.model.get('torrents') });
+        this.model.set('langs', { [defaultAudio]: this.model.get('torrents') });
       } else {
-        this.model.set('torrents', this.model.get('langs')[this.model.get('defaultAudio')]);
+        this.model.set('torrents', (this.model.get('langs') && this.model.get('langs')[defaultAudio]) || this.model.get('torrents'));
       }
       this.model.set('showTorrentsMore', providers.torrent.feature('torrents'));
       this.model.set('showTorrents', false);
@@ -283,7 +284,8 @@
         lang: this.audio_selected,
         type: 'movie',
         device: App.Device.Collection.selected,
-        cover: this.model.get('cover')
+        cover: this.model.get('cover'),
+        fileIdx: defaultTorrent ? defaultTorrent.fileIdx : undefined
       });
 
       App.vent.trigger('stream:start', torrentStart, state);

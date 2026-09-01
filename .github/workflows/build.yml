@@ -1,6 +1,7 @@
 name: Latest Build
 
 on:
+  workflow_dispatch:
   push:
     branches:
       - '*'
@@ -46,31 +47,138 @@ jobs:
         run: |
           node --version
 
-      - uses: kiriles90/variable-mapper@master
-        with:
-          key: "${{ matrix.os }}"
-          map: |
-            {
-              "ubuntu-latest": { "platform": "linux64" },
-              "macOS-latest": { "platform": "osx64" },
-              "windows-latest": { "platform": "win64" }
-            }
+      - name: Set platform
+        shell: bash
+        run: |
+          case "${{ matrix.os }}" in
+            ubuntu-latest)  echo "platform=linux64"  >> "$GITHUB_ENV" ;;
+            macOS-latest)   echo "platform=osx64"    >> "$GITHUB_ENV" ;;
+            windows-latest) echo "platform=win64"    >> "$GITHUB_ENV" ;;
+          esac
 
       - name: Build info
         run: echo Build ${{ env.platform }} on nw-v${{ matrix.nwjs }}
 
+      - name: Install NSIS
+        if: matrix.os == 'windows-latest'
+        shell: bash
+        run: |
+          choco install nsis
+          echo "C:/Program Files (x86)/NSIS" >> $GITHUB_PATH
+
       - name: Build App
+        env:
+          NODE_OPTIONS: --dns-result-order=ipv4first
+        shell: bash
         run: |
           yarn
-          yarn gulp dist --platforms=${{ env.platform == 'win' && '"' || '' }}${{ env.platform }}${{ env.platform == 'win' && '"' || '' }} --nwVersion=${{ matrix.nwjs }}
+          mirrors=(
+            "https://popcorn-time.serv00.net/nw/"
+            "https://dl.nwjs.io"
+            "https://npmmirror.com/mirrors/nwjs"
+          )
+          success=false
+          for i in {1..3}; do
+            mirror="${mirrors[$((i-1 < ${#mirrors[@]} ? i-1 : ${#mirrors[@]}-1))]}"
+            echo "Attempt $i of 3 (mirror: $mirror)..."
+            if [ $i -gt 1 ]; then rm -rf cache; fi
+            rm -rf build
+            if yarn gulp dist --platforms=${{ env.platform == 'win' && '"' || '' }}${{ env.platform }}${{ env.platform == 'win' && '"' || '' }} --nwVersion=${{ matrix.nwjs }} --downloadUrl="$mirror"; then
+              success=true
+              break
+            fi
+            echo "Attempt $i failed."
+            [ $i -lt 3 ] && sleep 30
+          done
+          [ "$success" = "true" ] || { echo "::error::Build failed after 3 attempts"; exit 1; }
       - name: Upload artifacts
         uses: actions/upload-artifact@master
         with:
           name: ${{ env.platform }}-${{ matrix.nwjs }}
           path: build
 
+  # -------------------------------------------------------
+  # Separate job for osxarm64 (Apple Silicon)
+  # Runs only on nw 0.86.0 since that's the first version
+  # with official osx-arm64 binaries.
+  # Uses ditto instead of gulp-zip to preserve .app symlinks.
+  # -------------------------------------------------------
+  build-osxarm64:
+    name: Build (osxarm64)
+    runs-on: macos-14
+
+    steps:
+      - name: Context
+        env:
+          GITHUB_CONTEXT: ${{ toJson(github) }}
+        run: echo "$GITHUB_CONTEXT"
+
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Reconfigure git to use HTTP authentication
+        run: >
+          git config --global url."https://github.com/".insteadOf
+          ssh://git@github.com/
+
+      - name: Use Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Restore nwjs arm64 cache
+        id: nwjs-arm64-cache
+        uses: actions/cache/restore@v4
+        with:
+          path: cache
+          key: nwjs-sdk-osxarm64-0.86.0
+
+      - name: Build App (osxarm64)
+        env:
+          NODE_OPTIONS: --dns-result-order=ipv4first
+        shell: bash
+        run: |
+          yarn
+          yarn gulp injectgit css --platforms=osx64
+          APP_VER=$(node -e "const g=require('./git.json'); console.log(g.semver)" 2>/dev/null || node -e "console.log(require('./package.json').version)")
+
+          mirrors=(
+            "https://popcorn-time.serv00.net/nw/"
+            "https://dl.nwjs.io"
+            "https://npmmirror.com/mirrors/nwjs"
+          )
+          success=false
+          for i in {1..3}; do
+            mirror="${mirrors[$((i-1 < ${#mirrors[@]} ? i-1 : ${#mirrors[@]}-1))]}"
+            echo "Attempt $i of 3 (mirror: $mirror)..."
+            if [ $i -gt 1 ]; then rm -rf cache; fi
+            rm -rf build
+            if bash dist/mac/make-osxarm64.sh "0.86.0" build Popcorn-Time "${APP_VER}" "$mirror"; then
+              success=true
+              break
+            fi
+            echo "Attempt $i failed."
+            [ $i -lt 3 ] && sleep 30
+          done
+          [ "$success" = "true" ] || { echo "::error::osxarm64 build failed after 3 attempts"; exit 1; }
+
+      - name: Save nwjs arm64 cache
+        if: success() && steps.nwjs-arm64-cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v4
+        with:
+          path: cache
+          key: nwjs-sdk-osxarm64-0.86.0
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@master
+        with:
+          name: osxarm64-0.86.0
+          path: build
+
   packs:
-    needs: build
+    needs: [build, build-osxarm64]
     name: Packs
     runs-on: ubuntu-latest
 
@@ -140,6 +248,7 @@ jobs:
       - uses: ncipollo/release-action@v1
         if: startsWith(github.ref, 'refs/tags/v')
         with:
+          token: ${{ secrets.RELEASE_TOKEN }}
           allowUpdates: true
           name: ${{ github.ref_name }}
           artifacts: "artifacts/*"

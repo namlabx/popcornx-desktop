@@ -35,7 +35,7 @@
             'click .shmi-rating': 'switchRating',
             'click .health-icon': 'refreshTorrentHealth',
             'mousedown .shp-img': 'clickPoster',
-            'mousedown .show-detail-container': 'exitZoom', 
+            'mousedown .show-detail-container': 'exitZoom',
             'mousedown .shm-title, .sdoi-title, .episodeData div': 'copytoclip',
             'click .playerchoicehelp': 'showPlayerList',
             'click .playerchoicerefresh': 'refreshPlayerList'
@@ -109,6 +109,7 @@
             App.vent.on('update:torrents', _this.onUpdateTorrentsList.bind(_this));
             App.vent.on('audio:lang', this.switchAudio.bind(this));
             this.initTorrents(this.model.get('episodes'));
+            Common.checkStreamsProvider();
         },
 
         initTorrents: function (episodes) {
@@ -160,13 +161,14 @@
             Mousetrap.unbind('f');
         },
 
-        onUpdateTorrentsList: function(info) {
+        onUpdateTorrentsList: function (info) {
             if (!info) {
                 this.getRegion('torrentList').empty();
                 this.getRegion('torrentShowList').empty();
                 return;
             }
-            const showProvider = App.Config.getProviderForType('tvshow')[0];
+            const providerType = (this.model.get('imdb_id') && this.model.get('imdb_id').startsWith('kitsu:')) ? 'anime' : 'tvshow';
+            const showProvider = App.Config.getProviderForType(providerType)[0];
             if (!info.episodeOnly) {
                 this.getRegion('torrentShowList').empty();
                 const torrentShowList = new App.View.TorrentList({
@@ -209,14 +211,14 @@
             var images = this.model.get('images');
             var backdrop = this.model.get('backdrop');
             var poster = this.model.get('poster');
-            if (!poster && images && images.poster){
+            if (!poster && images && images.poster) {
                 poster = this.model.get('images').poster;
             }
             else {
                 poster = this.model.get('poster') || noimg;
             }
             if (!backdrop) {
-              backdrop = images.banner || nobg;
+                backdrop = images.banner || nobg;
             }
 
             if (Settings.translatePosters) {
@@ -257,7 +259,7 @@
             App.Device.ChooserView('#player-chooser').render();
             $('.spinner').hide();
 
-            $('.playerchoicerefresh, .playerchoicehelp').tooltip({html: true, delay: {'show': 800,'hide': 100}});
+            $('.playerchoicerefresh, .playerchoicehelp').tooltip({ html: true, delay: { 'show': 800, 'hide': 100 } });
 
             if ($('.loading .maximize-icon').is(':visible') || $('.player .maximize-icon').is(':visible')) {
                 $('.sdo-watch, .sdow-watchnow, #download-torrent').addClass('disabled');
@@ -319,7 +321,7 @@
                         _this.markWatched(value, true);
                         // store all watched episode
                         if (value) {
-                            episodesSeen.push(parseInt(value.season) * 100 +
+                            episodesSeen.push(parseInt(value.season) * 100000 +
                                 parseInt(value.episode));
                         }
                     });
@@ -330,7 +332,7 @@
                         var episodes = [];
                         _.each(_this.model.get('episodes'),
                             function (value, currentepisode) {
-                                episodes.push(parseInt(value.season) * 100 +
+                                episodes.push(parseInt(value.season) * 100000 +
                                     parseInt(value.episode));
                             }
                         );
@@ -360,23 +362,23 @@
                                 if (!idx) {
                                     // switch back to firstUnwatched method if idx not found
                                     unseen.push(first);
-                                    episode = unseen[0] % 100;
-                                    season = (unseen[0] - episode) / 100;
+                                    episode = unseen[0] % 100000;
+                                    season = (unseen[0] - episode) / 100000;
                                 } else {
                                     var next_episode = episodes[idx + 1];
-                                    episode = next_episode % 100;
-                                    season = (next_episode - episode) / 100;
+                                    episode = next_episode % 100000;
+                                    season = (next_episode - episode) / 100000;
                                 }
                             } else {
-                                episode = lastSeen % 100;
-                                season = (lastSeen - episode) / 100;
+                                episode = lastSeen % 100000;
+                                season = (lastSeen - episode) / 100000;
                             }
                         } else {
                             //if all episode seend back to first
                             //it will be the only one
                             unseen.push(first);
-                            episode = unseen[0] % 100;
-                            season = (unseen[0] - episode) / 100;
+                            episode = unseen[0] % 100000;
+                            season = (unseen[0] - episode) / 100000;
                         }
 
 
@@ -388,9 +390,11 @@
                     } else {
                         _this.selectSeason($('li[data-tab="season-' + season + '"]'));
                         var $episode = $('#watched-' + season + '-' + episode).parent();
-                        _this.selectEpisode($episode);
-                        if (!_this.isElementVisible($episode[0])) {
-                            $episode[0].scrollIntoView(false);
+                        if ($episode.length > 0) {
+                            _this.selectEpisode($episode);
+                            if (!_this.isElementVisible($episode[0])) {
+                                $episode[0].scrollIntoView(false);
+                            }
                         }
                     }
                 });
@@ -417,10 +421,10 @@
             }
         },
 
-        openTmdb: function(e) {
+        openTmdb: function (e) {
             let imdb = this.model.get('imdb_id'),
-            tmdb = this.model.get('tmdb_id'),
-            api_key = Settings.tmdb.api_key;
+                tmdb = this.model.get('tmdb_id'),
+                api_key = Settings.tmdb.api_key;
 
             if (!tmdb) {
                 let show = (function () {
@@ -456,12 +460,13 @@
             AdvSettings.set('ratingStars', $('.number-container-tv').hasClass('hidden'));
         },
 
-        switchAudio: async function(lang) {
+        switchAudio: async function (lang) {
             if (lang === this.model.get('contextLocale')) {
                 return;
             }
             $('.spinner').show();
-            const showProvider = App.Config.getProviderForType('tvshow')[0];
+            const providerType = (this.model.get('imdb_id') && this.model.get('imdb_id').startsWith('kitsu:')) ? 'anime' : 'tvshow';
+            const showProvider = App.Config.getProviderForType(providerType)[0];
             const data = await showProvider.contentOnLang(this.model.get('imdb_id'), lang);
             this.model.set('contextLocale', data.contextLocale);
             this.model.set('episodes', data.episodes);
@@ -473,7 +478,7 @@
             } : null);
         },
 
-        loadDropdown: function(type, attrs) {
+        loadDropdown: function (type, attrs) {
             this.views[type] && this.views[type].destroy();
             this.views[type] = new App.View.LangDropdown({
                 model: new App.Model.Lang(Object.assign({ type: type }, attrs))
@@ -482,7 +487,7 @@
             this.getRegion(types).show(this.views[type]);
         },
 
-        loadAudioDropdown: function() {
+        loadAudioDropdown: function () {
             return this.loadDropdown('audio', {
                 title: i18n.__('Audio Language'),
                 selected: this.model.get('contextLocale'),
@@ -593,6 +598,8 @@
             if (e.type) {
                 e.preventDefault();
             }
+            var torrentUrl = $(e.currentTarget).attr('data-torrent');
+            if (!torrentUrl) return;
             var that = this;
             var title = that.model.get('title');
             var file_name = $(e.currentTarget).attr('data-file');
@@ -675,6 +682,7 @@
                 device: App.Device.Collection.selected,
                 episodes: episodes,
                 file_name: file_name,
+                fileIdx: $(e.currentTarget).attr('data-fileidx'),
                 auto_play: auto_play,
                 auto_id: parseInt(season) * 100 + parseInt(episode),
                 auto_play_data: episodes_data
@@ -683,7 +691,7 @@
             App.vent.trigger('stream:start', torrentStart, state);
         },
 
-        downloadTorrent: function(e) {
+        downloadTorrent: function (e) {
             this.startStreaming(e, 'downloadOnly');
             if (Settings.showSeedboxOnDlInit) {
                 App.previousview = App.currentview;
@@ -748,7 +756,7 @@
             _this.model.set('selectedEpisode', selectedEpisode);
             var qualitySelector = new App.View.QualitySelector({
                 model: new Backbone.Model({
-                    torrents: selectedEpisode.torrents,
+                    torrents: selectedEpisode.torrents || {},
                     selectCallback: _this.selectTorrent,
                     required: ['480p', '720p', '1080p'],
                     defaultQualityKey: 'shows_default_quality',
@@ -756,7 +764,30 @@
             });
             _this.getRegion('qualitySelector').show(qualitySelector);
 
+            if (!selectedEpisode.torrents || Object.keys(selectedEpisode.torrents).length === 0) {
+                const providerType = (_this.model.get('imdb_id') && _this.model.get('imdb_id').startsWith('kitsu:')) ? 'anime' : 'tvshow';
+                const showProvider = App.Config.getProviderForType(providerType)[0];
+                if (showProvider && showProvider.episodeTorrents) {
+                    showProvider.episodeTorrents(_this.model.get('imdb_id'), _this.model.get('contextLocale'), season, episode).then(streams => {
+                        let t = {};
+                        if (streams && streams.length > 0) {
+                            streams.forEach(s => {
+                                if (!t[s.quality] || s.seed > t[s.quality].seed) {
+                                    t[s.quality] = s;
+                                }
+                            });
+                        }
+                        selectedEpisode.torrents = t;
+                        if (_this.model.get('selectedEpisode') === selectedEpisode) {
+                            qualitySelector.updateTorrents(t);
+                        }
+                    });
+                }
+            }
+
             var first_aired = selectedEpisode.first_aired ? dayjs.unix(selectedEpisode.first_aired).locale(Settings.language).format('LLLL') : '';
+            var isFuture = selectedEpisode.first_aired && selectedEpisode.first_aired > (Date.now() / 1000);
+
             var synopsis = $('.sdoi-synopsis');
             var startStreaming = $('.startStreaming');
             var localize = this.localizeEpisode(selectedEpisode);
@@ -765,7 +796,12 @@
             $elem.addClass('active');
             $('.sdoi-number').text(i18n.__('Season %s', selectedEpisode.season) + ', ' + i18n.__('Episode %s', selectedEpisode.episode));
             $('.sdoi-title').text(localize.title);
-            $('.sdoi-date').text(i18n.__('Aired Date') + ': ' + first_aired);
+
+            if (isFuture) {
+                $('.sdoi-date').html(i18n.__('Aired Date') + ': ' + first_aired + ' <span class="badge badge-warning" style="background-color: #f0ad4e; color: white; padding: 2px 6px; border-radius: 4px; margin-left: 10px; font-size: 0.85em;">' + i18n.__('Not Aired Yet') + '</span>');
+            } else {
+                $('.sdoi-date').text(i18n.__('Aired Date') + ': ' + first_aired);
+            }
             synopsis.text(localize.overview);
 
             //pull the scroll always to top
@@ -786,7 +822,8 @@
             } : null);
         },
 
-        selectTorrent: function(torrent, key) {
+        selectTorrent: function (torrent, key) {
+            if (!torrent) return;
             var startStreaming = $('.startStreaming');
             var downloadButton = $('#download-torrent');
             startStreaming.attr('data-file', torrent.file || '');
@@ -794,8 +831,10 @@
             startStreaming.attr('data-source', torrent.source);
             startStreaming.attr('data-provider', torrent.provider);
             startStreaming.attr('data-quality', key);
+            startStreaming.attr('data-fileidx', torrent.fileIdx !== undefined ? torrent.fileIdx : '');
             downloadButton.attr('data-torrent', torrent.url);
             downloadButton.attr('data-file', torrent.file || '');
+            downloadButton.attr('data-fileidx', torrent.fileIdx !== undefined ? torrent.fileIdx : '');
 
             _this.resetTorrentHealth();
             _this.toggleSourceLink();
@@ -917,7 +956,7 @@
             );
         },
 
-        clickPoster: function(e) {
+        clickPoster: function (e) {
             e.stopPropagation();
             if (e.button === 0) {
                 $('.sh-poster').hasClass('active') ? this.exitZoom() : this.posterZoom();
@@ -928,21 +967,21 @@
             }
         },
 
-        posterZoom: function() {
+        posterZoom: function () {
             var zoom = $('.show-detail-container').height() / $('.shp-img').height() * (0.75 + Settings.bigPicture / 2000);
             var top = parseInt(($('.shp-img').height() * zoom - $('.shp-img').height()) / 2 + (3000 / Settings.bigPicture)) + 'px';
             var left = parseInt(($('.shp-img').width() * zoom - $('.shp-img').width()) / 2 + (2000 / Settings.bigPicture)) + 'px';
             $('.sh-poster, .show-details, .sh-metadata, .sh-actions').addClass('active');
-            $('.sh-poster.active').css({transform: 'scale(' + zoom + ')', top: top, left: left});
+            $('.sh-poster.active').css({ transform: 'scale(' + zoom + ')', top: top, left: left });
         },
 
-        exitZoom: function() {
+        exitZoom: function () {
             $('.sh-poster').hasClass('active') ? $('.sh-poster, .show-details, .sh-metadata, .sh-actions').removeClass('active').removeAttr('style') : null;
         },
 
         copytoclip: (e) => Common.openOrClipboardLink(e, $(e.target)[0].textContent, ($(e.target)[0].className ? i18n.__($(e.target)[0].className.replace('shm-', '').replace('sdoi-', 'episode ')) : i18n.__('episode title')), true),
 
-        retrieveTorrentHealth: function(cb) {
+        retrieveTorrentHealth: function (cb) {
             const torrentURL = $('.startStreaming').attr('data-torrent');
             return Common.retrieveTorrentHealth(torrentURL, cb);
         },
@@ -961,7 +1000,8 @@
             const sourceURL = $('.startStreaming').attr('data-source');
             const provider = $('.startStreaming').attr('data-provider');
             let providerIcon;
-            const showProvider = App.Config.getProviderForType('tvshow')[0];
+            const providerType = (this.model.get('imdb_id') && this.model.get('imdb_id').startsWith('kitsu:')) ? 'anime' : 'tvshow';
+            const showProvider = App.Config.getProviderForType(providerType)[0];
             this.icons.getLink(showProvider, provider)
                 .then((icon) => providerIcon = icon || '/src/app/images/icons/' + provider + '.png')
                 .catch((error) => { !providerIcon ? providerIcon = '/src/app/images/icons/' + provider + '.png' : null; })
@@ -985,7 +1025,7 @@
             Common.refreshPlayerList(e);
         },
 
-        showAllTorrents: function() {
+        showAllTorrents: function () {
             const show = !this.model.get('showTorrents');
             this.model.set('showTorrents', show);
             if (show) {

@@ -75,14 +75,17 @@
 
                 torrentProvider.loading = true;
                 return getDataFromProvider(providers, self)
-                    .then(torrentProvider.loading = false)
                     .then(function (torrents) {
+                        torrentProvider.loading = false;
                         // set state, can't fail
                         if (torrents.results.length !== 0) {
                             torrentProvider.page++;
                         } else {
                             torrentProvider.hasMore = false;
                         }
+
+                        // update collection hasMore based on providers
+                        self.hasMore = self.providers.torrents.some(p => p.hasMore);
 
                         self.add(torrents.results);
 
@@ -92,6 +95,7 @@
                         self.trigger('loaded', self, self.state);
                     })
                     .catch(function (err) {
+                        torrentProvider.loading = false;
                         win.error('provider error err', err);
                     });
             });

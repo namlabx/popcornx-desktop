@@ -4,7 +4,7 @@
  * setup *
  ********/
 const defaultNwVersion = '0.86.0',
-  availablePlatforms = ['linux32', 'linux64', 'win32', 'win64', 'osx64'],
+  availablePlatforms = ['linux32', 'linux64', 'win32', 'win64', 'osx64', 'osxarm64'],
   releasesDir = 'build',
   nwFlavor = 'sdk';
 
@@ -29,6 +29,13 @@ const gulp = require('gulp'),
 const { detectCurrentPlatform } = require('nw-builder/dist/index.cjs');
 
 const nwVersion = yargs.argv.nwVersion || defaultNwVersion;
+
+// allow overriding the nwjs download URL via --downloadUrl
+// (useful when the default dl.nwjs.io is blocked/reset by CI runners)
+// known public mirrors:
+//   https://dl.nwjs.io        (default)
+//   https://npmmirror.com/mirrors/nwjs
+const nwDownloadUrl = yargs.argv.downloadUrl;
 
 /***********
  *  custom  *
@@ -185,9 +192,9 @@ const nw = new nwBuilder({
   version: nwVersion,
   flavor: nwFlavor,
   manifestUrl: 'https://popcorn-time.serv00.net/version.json',
-  downloadUrl: 'https://popcorn-time.serv00.net/nw/',
+  downloadUrl: nwDownloadUrl || 'https://popcorn-time.serv00.net/nw/',
   platforms: parsePlatforms()
-}).on('log', console.log);
+});
 
 /*************
  * gulp tasks *
@@ -281,7 +288,7 @@ gulp.task('compresszip', () => {
       return new Promise((resolve, reject) => {
         console.log('Packaging zip for: %s', platform);
         var sources = path.join('build', pkJson.name, platform);
-        if (platform.match(/osx64/) !== null) {
+        if (platform.match(/osx/) !== null) {
           sources = path.join('build', pkJson.name, platform, '/**.app');
         }
         return gulp
@@ -415,6 +422,7 @@ gulp.task('nwjs', () => {
         '!./**/.*/**'
       ]);
 
+      nw.on('log', console.log);
       return nw.build();
     })
     .then(() => {
@@ -435,6 +443,7 @@ gulp.task('nwjs', () => {
     })
     .catch(function(error) {
       console.error(error);
+      throw error;
     });
 });
 
@@ -448,7 +457,7 @@ gulp.task('injectgit', () => {
             'git.json',
             JSON.stringify({
               commit: gitInfo.hash.substr(1),
-              semver: gitInfo.semverString.includes(pkJson.version) ? gitInfo.semverString : gitInfo.semverString + '-' + pkJson.version.split('-').slice(1).join('-'),
+              semver: (gitInfo.semverString || pkJson.version).includes(pkJson.version) ? (gitInfo.semverString || pkJson.version) : (gitInfo.semverString || pkJson.version) + '-' + pkJson.version.split('-').slice(1).join('-'),
             }),
             (error) => {
               return error ? reject(error) : resolve(gitInfo);
@@ -463,6 +472,7 @@ gulp.task('injectgit', () => {
     .catch((error) => {
       console.log(error);
       console.log('Injectgit task failed');
+      throw error;
     });
 });
 

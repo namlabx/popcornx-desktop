@@ -38,11 +38,14 @@ Common.calcRatio = function (seeds, peers) {
 };
 
 Common.retrieveTorrentHealth = function (torrent, cb) {
+    if (!torrent) {
+        return cb(new Error('Torrent is undefined'), null);
+    }
     const torrentURL = typeof torrent === 'string'
         ? torrent
         : torrent.magnet || torrent.url || torrent.magnetURI;
     if (!torrentURL) {
-        cb(new Error('Torrent URL could not be obtained'), null);
+        return cb(new Error('Torrent URL could not be obtained'), null);
     }
     // check for 'magnet:?' because api sometimes sends back links, not magnets
     if (!torrentURL.startsWith('magnet:?')) {
@@ -318,3 +321,25 @@ Common.refreshPlayerList = function (e) {
 };
 
 Common.qualityCollator = new Intl.Collator(undefined, {numeric: true, sensitivity: 'base'});
+
+Common.checkStreamsProvider = function () {
+    var streamServer = (typeof AdvSettings !== 'undefined' && AdvSettings.get('torrentioUrl')) || (typeof Settings !== 'undefined' && Settings.torrentioUrl) || '';
+    if (!streamServer || !streamServer.trim()) {
+        App.vent.trigger('notification:show', new App.Model.Notification({
+            title: i18n.__('Streams Provider Not Configured'),
+            body: i18n.__('Please configure a Streams Provider URL in Settings to load streams and torrents.'),
+            type: 'warning',
+            showClose: true,
+            autoclose: 10000,
+            buttons: [{
+                title: i18n.__('Open Settings'),
+                action: function () {
+                    App.vent.trigger('notification:close');
+                    App.vent.trigger('settings:show', new Backbone.Model({ focus: 'torrentioUrl' }));
+                }
+            }]
+        }));
+        return false;
+    }
+    return true;
+};

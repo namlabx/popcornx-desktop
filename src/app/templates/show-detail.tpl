@@ -84,10 +84,11 @@
                         <li class="tab-episode<%= Settings.seriesUITransparency ? '' : ' transpOff' %>" data-id="<%=episodeData.tvdb_id %>" data-season="<%=episodeData.season %>" data-episode="<%=episodeData.episode %>">
                             <a href="#" class="episodeData">
                                 <span><%=episodeData.episode %></span>
+                                <% var isFuture = episodeData.first_aired && episodeData.first_aired !== 'Unknown' && (episodeData.first_aired > Math.floor(Date.now() / 1000)); %>
                                 <% if (Settings.activateSeedbox) { %>
-                                <div style="max-width:calc(60vw - 395px)"><%=localizeEpisode(episodeData).listTitle %></div>
+                                <div style="max-width:calc(60vw - 395px); <%= isFuture ? 'opacity: 0.5;' : '' %>"><%=localizeEpisode(episodeData).listTitle %><% if (isFuture) { %> <i class="fa fa-calendar-times" style="margin-left: 5px;" title="<%= i18n.__('Not yet aired') %>"></i><% } %></div>
                                 <% } else { %>
-                                <div><%=localizeEpisode(episodeData).listTitle %></div>
+                                <div style="<%= isFuture ? 'opacity: 0.5;' : '' %>"><%=localizeEpisode(episodeData).listTitle %><% if (isFuture) { %> <i class="fa fa-calendar-times" style="margin-left: 5px;" title="<%= i18n.__('Not yet aired') %>"></i><% } %></div>
                                 <% } %>
                             </a>
 

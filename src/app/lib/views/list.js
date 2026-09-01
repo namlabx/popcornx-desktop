@@ -34,33 +34,33 @@
         onRender: function () {
             if (this.retry) {
                 switch (App.currentview) {
-                case 'movies':
-                case 'shows':
-                case 'anime':
-                    this.ui.onlineSearch.css('visibility', 'visible');
-                    this.ui.retryButton.css('visibility', 'visible');
-                    this.ui.changeApi.css('visibility', 'visible');
-                    this.ui.onlineSearch.parent().parent().css({'text-align': 'center', 'width': '100%'});
-                    break;
-                case 'Watchlist':
-                    this.ui.onlineSearch.css('display', 'none');
-                    this.ui.retryButton.css('visibility', 'visible');
-                    this.ui.changeApi.css('display', 'none');
-                    this.ui.onlineSearch.parent().parent().css({'text-align': 'center', 'width': '100%'});
-                    break;
-                default:
+                    case 'movies':
+                    case 'shows':
+                    case 'anime':
+                        this.ui.onlineSearch.css('visibility', 'visible');
+                        this.ui.retryButton.css('visibility', 'visible');
+                        this.ui.changeApi.css('visibility', 'visible');
+                        this.ui.onlineSearch.parent().parent().css({ 'text-align': 'center', 'width': '100%' });
+                        break;
+                    case 'Watchlist':
+                        this.ui.onlineSearch.css('display', 'none');
+                        this.ui.retryButton.css('visibility', 'visible');
+                        this.ui.changeApi.css('display', 'none');
+                        this.ui.onlineSearch.parent().parent().css({ 'text-align': 'center', 'width': '100%' });
+                        break;
+                    default:
                 }
             } else if (this.show_online_search) {
                 switch (App.currentview) {
-                case 'movies':
-                case 'shows':
-                case 'anime':
-                    this.ui.onlineSearch.css('visibility', 'visible');
-                    this.ui.retryButton.css('display', 'none');
-                    this.ui.changeApi.css('display', 'none');
-                    this.ui.onlineSearch.parent().parent().css({'text-align': 'center', 'width': '100%'});
-                    break;
-                default:
+                    case 'movies':
+                    case 'shows':
+                    case 'anime':
+                        this.ui.onlineSearch.css('visibility', 'visible');
+                        this.ui.retryButton.css('display', 'none');
+                        this.ui.changeApi.css('display', 'none');
+                        this.ui.onlineSearch.parent().parent().css({ 'text-align': 'center', 'width': '100%' });
+                        break;
+                    default:
                 }
             }
 
@@ -93,80 +93,80 @@
 
         emptyView: function () {
             switch (App.currentview) {
-            case 'movies':
-            case 'shows':
-            case 'anime':
-                if (this.collection.state === 'error') {
-                    var errorURL;
-                    switch (App.currentview) {
-                    case 'movies':
-                        errorURL = App.Config.getProviderForType('movie')[0].apiURL ? App.Config.getProviderForType('movie')[0].apiURL.slice(0) : '';
-                        break;
-                    case 'shows':
-                        errorURL = App.Config.getProviderForType('tvshow')[0].apiURL ? App.Config.getProviderForType('tvshow')[0].apiURL.slice(0) : '';
-                        break;
-                    case 'anime':
-                        errorURL = App.Config.getProviderForType('anime')[0].apiURL ? App.Config.getProviderForType('anime')[0].apiURL.slice(0) : '';
-                        break;
-                    default:
-                        errorURL = '';
-                    }
-                    if (errorURL) {
-                        errorURL.forEach(function(e, index) {
-                            errorURL[index] = '<a class="links" href="' + encodeURI(e) + '">' + encodeURI(e.replace(/http:\/\/|https:\/\/|\/$/g, '')) + '</a>';
+                case 'movies':
+                case 'shows':
+                case 'anime':
+                    if (this.collection.state === 'error') {
+                        var errorURL;
+                        switch (App.currentview) {
+                            case 'movies':
+                                errorURL = App.Config.getProviderForType('movie')[0].apiURL ? App.Config.getProviderForType('movie')[0].apiURL.slice(0) : '';
+                                break;
+                            case 'shows':
+                                errorURL = App.Config.getProviderForType('tvshow')[0].apiURL ? App.Config.getProviderForType('tvshow')[0].apiURL.slice(0) : '';
+                                break;
+                            case 'anime':
+                                errorURL = App.Config.getProviderForType('anime')[0].apiURL ? App.Config.getProviderForType('anime')[0].apiURL.slice(0) : '';
+                                break;
+                            default:
+                                errorURL = '';
+                        }
+                        if (errorURL) {
+                            errorURL.forEach(function (e, index) {
+                                errorURL[index] = '<a class="links" href="' + encodeURI(e) + '">' + encodeURI(e.replace(/http:\/\/|https:\/\/|\/$/g, '')) + '</a>';
+                            });
+                            errorURL = errorURL.join(', ').replace(/,(?=[^,]*$)/, ' &');
+                        } else {
+                            errorURL = i18n.__('the URL(s)');
+                        }
+                        return ErrorView.extend({
+                            retry: true,
+                            error: i18n.__('The remote ' + App.currentview + ' API failed to respond, please check %s and try again later', errorURL)
                         });
-                        errorURL = errorURL.join(', ').replace(/,(?=[^,]*$)/, ' &');
-                    } else {
-                        errorURL = i18n.__('the URL(s)');
+                    } else if (this.collection.state !== 'loading') {
+                        return ErrorView.extend({
+                            show_online_search: true,
+                            error: i18n.__('No ' + App.currentview.toLowerCase() + ' found...'),
+                        });
                     }
-                    return ErrorView.extend({
-                        retry: true,
-                        error: i18n.__('The remote ' + App.currentview + ' API failed to respond, please check %s and try again later', errorURL)
-                    });
-                } else if (this.collection.state !== 'loading') {
-                    return ErrorView.extend({
-                        show_online_search: true,
-                        error: i18n.__('No ' + App.currentview.toLowerCase() + ' found...'),
-                    });
-                }
-                break;
+                    break;
 
-            case 'Favorites':
-                if (this.collection.state === 'error') {
-                    return ErrorView.extend({
-                        retry: true,
-                        error: i18n.__('Error, database is probably corrupted. Try flushing the bookmarks in settings.')
-                    });
-                } else if (this.collection.state !== 'loading') {
-                    return ErrorView.extend({
-                        error: i18n.__('No ' + App.currentview.toLowerCase() + ' found...')
-                    });
-                }
-                break;
-            case 'Watched':
-                if (this.collection.state === 'error') {
-                    return ErrorView.extend({
-                        retry: true,
-                        error: i18n.__('Error, database is probably corrupted. Try flushing the watched items in settings.')
-                    });
-                } else if (this.collection.state !== 'loading') {
-                    return ErrorView.extend({
-                        error: i18n.__('No ' + App.currentview.toLowerCase() + ' items found...')
-                    });
-                }
-                break;
-            case 'Watchlist':
-                if (this.collection.state === 'error') {
-                    return ErrorView.extend({
-                        retry: true,
-                        error: i18n.__('This feature only works if you have your TraktTv account synced. Please go to Settings and enter your credentials.')
-                    });
-                } else if (this.collection.state !== 'loading') {
-                    return ErrorView.extend({
-                        error: i18n.__('No ' + App.currentview.toLowerCase() + ' found...')
-                    });
-                }
-                break;
+                case 'Favorites':
+                    if (this.collection.state === 'error') {
+                        return ErrorView.extend({
+                            retry: true,
+                            error: i18n.__('Error, database is probably corrupted. Try flushing the bookmarks in settings.')
+                        });
+                    } else if (this.collection.state !== 'loading') {
+                        return ErrorView.extend({
+                            error: i18n.__('No ' + App.currentview.toLowerCase() + ' found...')
+                        });
+                    }
+                    break;
+                case 'Watched':
+                    if (this.collection.state === 'error') {
+                        return ErrorView.extend({
+                            retry: true,
+                            error: i18n.__('Error, database is probably corrupted. Try flushing the watched items in settings.')
+                        });
+                    } else if (this.collection.state !== 'loading') {
+                        return ErrorView.extend({
+                            error: i18n.__('No ' + App.currentview.toLowerCase() + ' items found...')
+                        });
+                    }
+                    break;
+                case 'Watchlist':
+                    if (this.collection.state === 'error') {
+                        return ErrorView.extend({
+                            retry: true,
+                            error: i18n.__('This feature only works if you have your TraktTv account synced. Please go to Settings and enter your credentials.')
+                        });
+                    } else if (this.collection.state !== 'loading') {
+                        return ErrorView.extend({
+                            error: i18n.__('No ' + App.currentview.toLowerCase() + ' found...')
+                        });
+                    }
+                    break;
             }
         },
 
@@ -193,7 +193,7 @@
 
             _this.initPosterResizeKeys();
 
-            App.vent.on('viewstack:pop', function() {
+            App.vent.on('viewstack:pop', function () {
                 if (_.last(App.ViewStack) === 'init-container' || _.last(App.ViewStack) === 'main-browser') {
                     _this.initKeyboardShortcuts();
                 }
@@ -251,13 +251,13 @@
                     if (App.currentview === 'movies') {
                         $('.source.movieTabShow').addClass('active');
                     } else if (App.currentview === 'shows') {
-                            $('.source.tvshowTabShow').addClass('active');
+                        $('.source.tvshowTabShow').addClass('active');
                     } else if (App.currentview === 'Favorites') {
-                            $('#filterbar-favorites').addClass('active');
+                        $('#filterbar-favorites').addClass('active');
                     } else if (App.currentview === 'Watched') {
-                            $('#filterbar-watched').addClass('active');
+                        $('#filterbar-watched').addClass('active');
                     } else {
-                            $('.source.' + App.currentview + 'TabShow').addClass('active');
+                        $('.source.' + App.currentview + 'TabShow').addClass('active');
                     }
                 }
             });
@@ -409,31 +409,31 @@
             var maxResults = currentPage * 50;
 
             switch (App.currentview) {
-            case 'movies':
-            case 'shows':
-            case 'anime':
-                $('#load-more-item').remove();
-                $('#search-more-item').remove();
-                // we add a load more
-                if (this.collection.hasMore && this.collection.state !== 'error' && this.collection.length !== 0 && this.collection.length >= maxResults) {
-                    $('.items').append('<div id="load-more-item" class="load-more"><span class="status-loadmore">' + i18n.__('Load More') + '</span><div id="loading-more-animi" class="loading-container"><div class="ball"></div><div class="ball1"></div></div><span id="overlay"></span></div>');
+                case 'movies':
+                case 'shows':
+                case 'anime':
+                    $('#load-more-item').remove();
+                    $('#search-more-item').remove();
+                    // we add a load more
+                    if (this.collection.hasMore && this.collection.state !== 'error' && this.collection.length !== 0 && this.collection.length >= maxResults) {
+                        $('.items').append('<div id="load-more-item" class="load-more"><span class="status-loadmore">' + i18n.__('Load More') + '</span><div id="loading-more-animi" class="loading-container"><div class="ball"></div><div class="ball1"></div></div><span id="overlay"></span></div>');
 
-                    $('#load-more-item').click(function () {
-                        $('#load-more-item').off('click');
-                        self.collection.fetchMore();
-                    });
+                        $('#load-more-item').click(function () {
+                            $('#load-more-item').off('click');
+                            self.collection.fetchMore();
+                        });
 
-                    $('#loading-more-animi').hide();
-                    $('.status-loadmore').show();
-                }
-                break;
+                        $('#loading-more-animi').hide();
+                        $('.status-loadmore').show();
+                    }
+                    break;
 
-            case 'Favorites':
+                case 'Favorites':
 
-                break;
-            case 'Watchlist':
+                    break;
+                case 'Watchlist':
 
-                break;
+                    break;
             }
         },
 
@@ -482,9 +482,9 @@
 
             if (postersWidthIndex !== -1 && postersWidthIndex + 1 in Settings.postersJump) {
                 App.db.writeSetting({
-                        key: 'postersWidth',
-                        value: Settings.postersJump[postersWidthIndex + 1]
-                    })
+                    key: 'postersWidth',
+                    value: Settings.postersJump[postersWidthIndex + 1]
+                })
                     .then(function () {
                         App.vent.trigger('updatePostersSizeStylesheet');
                     });
@@ -504,9 +504,9 @@
             }
 
             App.db.writeSetting({
-                    key: 'postersWidth',
-                    value: postersWidth
-                })
+                key: 'postersWidth',
+                value: postersWidth
+            })
                 .then(function () {
                     App.vent.trigger('updatePostersSizeStylesheet');
                 });
@@ -614,7 +614,7 @@
     });
 
     function onMoviesWatched(movie, channel) {
-        if  (channel === 'database') {
+        if (channel === 'database') {
             try {
                 var el = $('li[data-imdb-id="' + App.MovieDetailView.model.get('imdb_id') + '"]');
 
@@ -629,7 +629,7 @@
                 }
                 $('.watched-toggle').addClass('selected').text(i18n.__('Seen'));
                 App.MovieDetailView.model.set('watched', true);
-            } catch (e) {}
+            } catch (e) { }
         }
     }
 

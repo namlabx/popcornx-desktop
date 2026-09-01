@@ -33,83 +33,83 @@ const FileServer = require("./fileserver");
 
     WebTorrentStreamer.prototype = {
 
-        initExistTorrents: function() {
-          if (!Settings.continueSeedingOnStart) {
-            return;
-          }
-
-          fs.readdir(App.settings.tmpLocation + '/TorrentCache/', (err, files) => {
-            if (err) {
-              win.error('Read exist torrents failed:', err.name, err.code);
-              return;
+        initExistTorrents: function () {
+            if (!Settings.continueSeedingOnStart) {
+                return;
             }
 
-            async.eachLimit(files, 1, function (file, cb) {
-              if (/^[a-f0-9]{40}$/i.test(file)) {
-                fs.readFile(App.settings.tmpLocation + '/TorrentCache/' + file, 'utf8', (err, data) => {
-                  if (err) {
-                    win.error('Read exist torrent failed:', file, err.name, err.code);
-                    return cb();
-                  }
+            fs.readdir(App.settings.tmpLocation + '/TorrentCache/', (err, files) => {
+                if (err) {
+                    win.error('Read exist torrents failed:', err.name, err.code);
+                    return;
+                }
 
-                  App.WebTorrent.add(data, {
-                      path      : App.settings.tmpLocation,
-                      maxConns  : 10,
-                      dht       : { concurrency: parseInt(Settings.maxUdpReqLimit, 10) || 16 },
-                      secure    : Settings.protocolEncryption || false,
-                      announce  : Settings.trackers.forced,
-                      tracker   : Settings.trackers.forced
-                  }, (torrent) => {
-                    return cb();
-                  });
+                async.eachLimit(files, 1, function (file, cb) {
+                    if (/^[a-f0-9]{40}$/i.test(file)) {
+                        fs.readFile(App.settings.tmpLocation + '/TorrentCache/' + file, 'utf8', (err, data) => {
+                            if (err) {
+                                win.error('Read exist torrent failed:', file, err.name, err.code);
+                                return cb();
+                            }
+
+                            App.WebTorrent.add(data, {
+                                path: App.settings.tmpLocation,
+                                maxConns: 10,
+                                dht: { concurrency: parseInt(Settings.maxUdpReqLimit, 10) || 16 },
+                                secure: Settings.protocolEncryption || false,
+                                announce: Settings.trackers.forced,
+                                tracker: Settings.trackers.forced
+                            }, (torrent) => {
+                                return cb();
+                            });
+                        });
+                    }
+                }, function (err) {
+                    if (err) {
+                        win.error('Load exist torrents failed:', err.name, err.code);
+                    }
                 });
-              }
-            }, function(err) {
-              if (err) {
-                win.error('Load exist torrents failed:', err.name, err.code);
-              }
             });
-          });
 
-          if (!App.settings.separateDownloadsDir) {
-            return;
-          }
-
-          fs.readdir(App.settings.downloadsLocation + '/TorrentCache/', (err, files) => {
-            if (err) {
-              win.error('Read exist torrents failed:', err.name, err.code);
-              return;
+            if (!App.settings.separateDownloadsDir) {
+                return;
             }
 
-            async.eachLimit(files, 1, function (file, cb) {
-              if (/^[a-f0-9]{40}$/i.test(file)) {
-                fs.readFile(App.settings.downloadsLocation + '/TorrentCache/' + file, 'utf8', (err, data) => {
-                  if (err) {
-                    win.error('Read exist torrent failed:', file, err.name, err.code);
-                    return cb();
-                  }
+            fs.readdir(App.settings.downloadsLocation + '/TorrentCache/', (err, files) => {
+                if (err) {
+                    win.error('Read exist torrents failed:', err.name, err.code);
+                    return;
+                }
 
-                  App.WebTorrent.add(data, {
-                      path      : App.settings.downloadsLocation,
-                      maxConns  : 10,
-                      dht       : { concurrency: parseInt(Settings.maxUdpReqLimit, 10) || 16 },
-                      secure    : Settings.protocolEncryption || false,
-                      announce  : Settings.trackers.forced,
-                      tracker   : Settings.trackers.forced
-                  }, (torrent) => {
-                    return cb();
-                  });
+                async.eachLimit(files, 1, function (file, cb) {
+                    if (/^[a-f0-9]{40}$/i.test(file)) {
+                        fs.readFile(App.settings.downloadsLocation + '/TorrentCache/' + file, 'utf8', (err, data) => {
+                            if (err) {
+                                win.error('Read exist torrent failed:', file, err.name, err.code);
+                                return cb();
+                            }
+
+                            App.WebTorrent.add(data, {
+                                path: App.settings.downloadsLocation,
+                                maxConns: 10,
+                                dht: { concurrency: parseInt(Settings.maxUdpReqLimit, 10) || 16 },
+                                secure: Settings.protocolEncryption || false,
+                                announce: Settings.trackers.forced,
+                                tracker: Settings.trackers.forced
+                            }, (torrent) => {
+                                return cb();
+                            });
+                        });
+                    }
+                }, function (err) {
+                    if (err) {
+                        win.error('Load exist torrents failed:', err.name, err.code);
+                    }
                 });
-              }
-            }, function(err) {
-              if (err) {
-                win.error('Load exist torrents failed:', err.name, err.code);
-              }
             });
-          });
         },
 
-        start: function(model, state) {
+        start: function (model, state) {
             if (App.WebTorrent.destroyed) {
                 this.stop();
             }
@@ -177,7 +177,7 @@ const FileServer = require("./fileserver");
             }
         },
 
-        stop: function() {
+        stop: function () {
             if (this.torrent) {
                 // update ratio
                 AdvSettings.set('totalDownloaded', Settings.totalDownloaded + this.torrent.downloaded);
@@ -206,12 +206,12 @@ const FileServer = require("./fileserver");
                 } else {
                     App.WebTorrent.destroy();
                     App.WebTorrent = new WebTorrent({
-                        maxConns     : parseInt(Settings.connectionLimit, 10) || 55,
+                        maxConns: parseInt(Settings.connectionLimit, 10) || 55,
                         downloadLimit: parseInt(parseFloat(Settings.downloadLimit, 10) * parseInt(Settings.maxLimitMult, 10)) || -1,
-                        uploadLimit  : parseInt(parseFloat(Settings.uploadLimit, 10) * parseInt(Settings.maxLimitMult, 10)) || -1,
-                        dht          : { concurrency: parseInt(Settings.maxUdpReqLimit, 10) || 16 },
-                        secure       : Settings.protocolEncryption || false,
-                        tracker      : {
+                        uploadLimit: parseInt(parseFloat(Settings.uploadLimit, 10) * parseInt(Settings.maxLimitMult, 10)) || -1,
+                        dht: { concurrency: parseInt(Settings.maxUdpReqLimit, 10) || 16 },
+                        secure: Settings.protocolEncryption || false,
+                        tracker: {
                             announce: Settings.trackers.forced
                         }
                     });
@@ -240,7 +240,7 @@ const FileServer = require("./fileserver");
             win.info('Streaming cancelled');
         },
 
-        stopFS: function() {
+        stopFS: function () {
             if (this.torrent) {
                 // update ratio
                 AdvSettings.set('totalDownloaded', Settings.totalDownloaded + this.torrent.downloaded);
@@ -303,19 +303,19 @@ const FileServer = require("./fileserver");
         },
 
         // fire webtorrent and resolve the torrent
-        fetchTorrent: function(torrentInfo, path, mediaName) {
+        fetchTorrent: function (torrentInfo, path, mediaName) {
             return new Promise(function (resolve, reject) {
 
                 // handles magnet and hosted torrents
                 var uri = torrentInfo.magnet || torrentInfo.url || torrentInfo;
                 const parseTorrent = require('parse-torrent');
                 var infoHash = '';
-                try { infoHash = parseTorrent(uri).infoHash; } catch (err) {}
+                try { infoHash = parseTorrent(uri).infoHash; } catch (err) { }
                 var torrent;
 
                 App.plugins.mediaName.setMediaName(infoHash, mediaName);
 
-                for(const t of App.WebTorrent.torrents) {
+                for (const t of App.WebTorrent.torrents) {
                     if (t.infoHash === infoHash) {
                         torrent = t;
                         torrent.resume();
@@ -333,14 +333,14 @@ const FileServer = require("./fileserver");
                 }
 
                 if (!torrent) {
-                  torrent = App.WebTorrent.add(uri, {
-                      path      : path,
-                      maxConns  : 10,
-                      dht       : { concurrency: parseInt(Settings.maxUdpReqLimit, 10) || 16 },
-                      secure    : Settings.protocolEncryption || false,
-                      announce  : Settings.trackers.forced,
-                      tracker   : Settings.trackers.forced
-                  });
+                    torrent = App.WebTorrent.add(uri, {
+                        path: path,
+                        maxConns: 10,
+                        dht: { concurrency: parseInt(Settings.maxUdpReqLimit, 10) || 16 },
+                        secure: Settings.protocolEncryption || false,
+                        announce: Settings.trackers.forced,
+                        tracker: Settings.trackers.forced
+                    });
                 }
 
                 const fs = require('fs');
@@ -399,12 +399,12 @@ const FileServer = require("./fileserver");
             var supported = ['.mp4', '.m4v', '.avi', '.mov', '.mkv', '.wmv'];
 
             try {
-                torrent.files.sort(function(a, b){
+                torrent.files.sort(function (a, b) {
                     if (a.name < b.name) { return -1; }
                     if (a.name > b.name) { return 1; }
                     return 0;
                 });
-            } catch (err) {}
+            } catch (err) { }
 
             // hide non-video files from selection and set index
             for (var f in torrent.files) {
@@ -442,13 +442,13 @@ const FileServer = require("./fileserver");
             var fileName = this.torrentModel.get('video_file').name;
 
             if (this.torrentModel) {
-                this.torrentModel.set('title', fileName); 
+                this.torrentModel.set('title', fileName);
             }
 
             App.Trakt.client.matcher.match({
                 filename: fileName,
                 torrent: torrent.name
-            }).then(function(metadatas) {
+            }).then(function (metadatas) {
                 var props = {};
 
                 var qualities = {
@@ -482,19 +482,39 @@ const FileServer = require("./fileserver");
                 this.lookForImages(metadatas);
                 this.handleSubtitles();
 
-            }.bind(this)).catch(function(err) {
+            }.bind(this)).catch(function (err) {
                 if (this.torrentModel) {
                     this.torrentModel.set('title', fileName);
                 }
                 this.handleSubtitles();
             }.bind(this));
-            setTimeout(() => { if (!this.subtitleReady) { this.handleSubtitles(); }}, 20000);
+            setTimeout(() => { if (!this.subtitleReady) { this.handleSubtitles(); } }, 20000);
         },
 
         // set video file name & index
         selectFile: function (torrent, fileName) {
             let fileIndex = 0;
             let fileSize = 0;
+
+            let fileIdx = this.torrentModel.get('fileIdx');
+            if (fileIdx !== undefined && fileIdx !== '' && fileIdx !== null) {
+                fileIdx = parseInt(fileIdx, 10);
+                if (!isNaN(fileIdx) && torrent.files[fileIdx]) {
+                    torrent.files[fileIdx].select();
+                    torrent.files[fileIdx].hidden = false;
+                    let p = torrent.files[fileIdx].path;
+                    if (!p.startsWith(torrent.path)) {
+                        p = path.join(torrent.path, p);
+                    }
+                    return {
+                        name: path.basename(p),
+                        size: torrent.files[fileIdx].length,
+                        index: fileIdx,
+                        path: p
+                    };
+                }
+            }
+
             if (!fileName) {
                 for (let i in torrent.files) {
                     if (fileSize < torrent.files[i].length) {
@@ -518,7 +538,7 @@ const FileServer = require("./fileserver");
                     file.select();
                     file.hidden = false;
                 } else {
-                //    file.deselect();
+                    //    file.deselect();
                 }
             }
             if (!fileName.startsWith(torrent.path)) {
@@ -666,14 +686,14 @@ const FileServer = require("./fileserver");
 
         watchState: function () {
             if (this.stopped) {
-              return;
+                return;
             }
             if (!this.torrent) {
-              return;
+                return;
             }
             if (!this.torrentModel) {
-              this.stopped = true;
-              return;
+                this.stopped = true;
+                return;
             }
             var torrentModel = this.torrentModel.get('torrent');
             var player = this.streamInfo.get('device');
@@ -701,7 +721,7 @@ const FileServer = require("./fileserver");
             }
             this.stateModel.set('state', state);
 
-            if (state === 'ready' || state === 'playingExternally' ) {
+            if (state === 'ready' || state === 'playingExternally') {
                 App.vent.trigger('stream:ready', this.streamInfo);
                 this.stateModel.destroy();
             } else {
@@ -753,13 +773,13 @@ const FileServer = require("./fileserver");
                     this.subtitleReady = true;
                 } else {
                     // after downloaded subtitles, we set the srt file to streamInfo
-                    App.vent.on('subtitle:downloaded', function(subtitlePath) {
+                    App.vent.on('subtitle:downloaded', function (subtitlePath) {
                         if (subtitlePath) {
                             this.streamInfo.set('subFile', subtitlePath);
                             App.vent.trigger('subtitle:convert', {
                                 path: subtitlePath,
                                 language: defaultSubtitle
-                            }, function(err, res) {
+                            }, function (err, res) {
                                 if (err) {
                                     win.error('error converting subtitles', err);
                                     this.streamInfo.set('subFile', null);
@@ -795,10 +815,10 @@ const FileServer = require("./fileserver");
         },
 
         // serve subtitles on a local server to make them accessible to remote cast devices
-        serveSubtitles: function(localPath) {
+        serveSubtitles: function (localPath) {
             App.vent.trigger('subtitle:convert', {
                 path: localPath
-            }, function(err, res) {
+            }, function (err, res) {
                 if (err) {
                     win.error('error converting subtitles', err);
                     this.streamInfo.set('subFile', null);
@@ -831,9 +851,9 @@ const FileServer = require("./fileserver");
                 .catch(function (err) {
                     this.subtitleReady = true;
                     win.error('subtitleProvider.fetch()', err);
-                    if (subtitle_retry === undefined) { subtitle_retry=0; }
+                    if (subtitle_retry === undefined) { subtitle_retry = 0; }
                     subtitle_retry++;
-                    if (subtitle_retry<5) {
+                    if (subtitle_retry < 5) {
                         win.info('subtitle fetching error. retry: ' + subtitle_retry + ' of 4');
                         this.subtitleReady = false;
                         this.handleSubtitles(subtitle_retry);
@@ -842,7 +862,7 @@ const FileServer = require("./fileserver");
                     }
                 }.bind(this));
 
-            setTimeout(() => { if (!this.subtitleReady) { this.subtitleReady = true; }}, 20000);
+            setTimeout(() => { if (!this.subtitleReady) { this.subtitleReady = true; } }, 20000);
             return;
         },
 
@@ -876,13 +896,13 @@ const FileServer = require("./fileserver");
         },
 
         // find a random port
-        generatePortNumber: function() {
+        generatePortNumber: function () {
             var min = 1024, max = 65535;
 
             return Math.floor(Math.random() * (max - min)) + min;
         }
 
-      };
+    };
 
     var streamer = new WebTorrentStreamer();
 

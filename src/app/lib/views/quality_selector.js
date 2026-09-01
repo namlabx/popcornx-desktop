@@ -31,9 +31,11 @@
         },
 
         updateTorrents: function (torrents) {
+            torrents = torrents || {};
             let keys = Object.keys(torrents).sort(Common.qualityCollator.compare);
             let sortedTorrents = {};
-            for (let key of this.model.get('required')) {
+            let required = this.model.get('required') || [];
+            for (let key of required) {
                 sortedTorrents[key] = false;
             }
             for (let key of keys) {
@@ -82,7 +84,9 @@
             $(this.ui.list).find('div:contains("'+key+'")').addClass('active');
             var torrents = this.model.get('sortedTorrents');
             var callback = this.model.get('selectCallback');
-            callback(torrents[key], key);
+            if (torrents[key]) {
+                callback(torrents[key], key);
+            }
         },
     });
 })(window.App);

@@ -532,5 +532,22 @@
 	"2160p": "2160p",
 	"3D": "3D",
 	"The remote movies API failed to respond, please check %s and try again later": "The remote movies API failed to respond, please check %s and try again later",
-	"No watched items found...": "No watched items found..."
+	"No watched items found...": "No watched items found...",
+	"Home And Garden": "Home And Garden",
+	"Continuing": "Continuing",
+	"Not yet aired": "Not yet aired",
+	"magnet link": "magnet link",
+	"Movies & Series": "Movies & Series",
+	"https://<server-url> (Movies & Series metadata endpoint)": "https://<server-url> (Movies & Series metadata endpoint)",
+	"https://<server-url> (Anime metadata endpoint)": "https://<server-url> (Anime metadata endpoint)",
+	"Streams Provider": "Streams Provider",
+	"https://<server-url> (Streams & Torrents addon endpoint)": "https://<server-url> (Streams & Torrents addon endpoint)",
+	"Streams Provider must follow the Stremio Stream Protocol (e.g. GET /stream/movie/{id}.json)": "Streams Provider must follow the Stremio Stream Protocol (e.g. GET /stream/movie/{id}.json)",
+	"Expected JSON Response Structure:": "Expected JSON Response Structure:",
+	"Streams Provider Not Configured": "Streams Provider Not Configured",
+	"Please configure a Streams Provider URL in Settings to load streams and torrents.": "Please configure a Streams Provider URL in Settings to load streams and torrents.",
+	"No movies found...": "No movies found...",
+	"No shows found...": "No shows found...",
+	"No anime found...": "No anime found...",
+	"Not Aired Yet": "Not Aired Yet"
 }

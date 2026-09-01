@@ -552,58 +552,37 @@
         <div class="title"><%= i18n.__("API Server(s)") %></div>
         <div class="content">
             <span>
-                <div class="opensubtitles-options">
-                    <p><%= i18n.__("Movies API Server(s)") %></p>
-                    <input type="text" size="61" id="customMoviesServer" name="customMoviesServer" list="moviesServers" value="<%= encodeURI(Settings.customMoviesServer ? Settings.customMoviesServer : (Settings.dhtEnable && Settings.dhtInfo ? Settings.dhtInfo.server : Settings.providers.movie.uri[0].split('=')[1])) %>">
-                    <datalist id="moviesServers">
-                        <% var movieServList = [Settings.providers.movie.uri[0].split('=')[1]];
-                           Settings.customServers && Settings.customServers.movie ? movieServList = movieServList.concat(Settings.customServers.movie) : null;
-                           Settings.dhtInfo ? movieServList = movieServList.concat([Settings.dhtInfo.server]) : null;
-                           for (var i = 0; i < movieServList.length; ++i) {
-                        %>
-                        <option value="<%= encodeURI(movieServList[i]).replace(/%20/g, ' ') %>">
-                        <% } %>
-                    </datalist>
-                </div>
+                <p><%= i18n.__("Movies & Series") %></p>
+                <input type="text" size="61" id="cinemetaUrl" name="cinemetaUrl" value="<%= Settings.cinemetaUrl %>" placeholder="<%= i18n.__('https://<server-url> (Movies & Series metadata endpoint)') %>">
             </span>
             <span>
-                <div class="opensubtitles-options">
-                    <p><%= i18n.__("Series API Server(s)") %></p>
-                    <input type="text" size="61" id="customSeriesServer" name="customSeriesServer" list="seriesServers" value="<%= encodeURI(Settings.customSeriesServer ? Settings.customSeriesServer : (Settings.dhtEnable && Settings.dhtInfo ? Settings.dhtInfo.server : Settings.providers.tvshow.uri[0].split('=')[1])) %>">
-                    <datalist id="seriesServers">
-                        <% var seriesServList = [Settings.providers.tvshow.uri[0].split('=')[1]];
-                           Settings.customServers && Settings.customServers.tvshow ? seriesServList = seriesServList.concat(Settings.customServers.tvshow) : null;
-                           Settings.dhtInfo ? seriesServList = seriesServList.concat([Settings.dhtInfo.server]) : null;
-                           for (var i = 0; i < seriesServList.length; ++i) {
-                        %>
-                        <option value="<%= encodeURI(seriesServList[i]).replace(/%20/g, ' ') %>">
-                        <% } %>
-                    </datalist>
-                </div>
+                <p><%= i18n.__("Anime") %></p>
+                <input type="text" size="61" id="kitsuUrl" name="kitsuUrl" value="<%= Settings.kitsuUrl %>" placeholder="<%= i18n.__('https://<server-url> (Anime metadata endpoint)') %>">
             </span>
             <span>
-                <div class="opensubtitles-options">
-                    <p><%= i18n.__("Anime API Server(s)") %></p>
-                    <input type="text" size="61" id="customAnimeServer" name="customAnimeServer" list="animeServers" value="<%= encodeURI(Settings.customAnimeServer ? Settings.customAnimeServer : (Settings.dhtEnable && Settings.dhtInfo ? Settings.dhtInfo.server : Settings.providers.anime.uri[0].split('=')[1])) %>">
-                    <datalist id="animeServers">
-                        <% var animeServList = [Settings.providers.anime.uri[0].split('=')[1]];
-                           Settings.customServers && Settings.customServers.anime ? animeServList = animeServList.concat(Settings.customServers.anime) : null;
-                           Settings.dhtInfo ? animeServList = animeServList.concat([Settings.dhtInfo.server]) : null;
-                           for (var i = 0; i < animeServList.length; ++i) {
-                        %>
-                        <option value="<%= encodeURI(animeServList[i]).replace(/%20/g, ' ') %>">
-                        <% } %>
-                    </datalist>
+                <p><%= i18n.__("Streams Provider") %></p>
+                <input type="text" size="61" id="torrentioUrl" name="torrentioUrl" value="<%= Settings.torrentioUrl %>" placeholder="<%= i18n.__('https://<server-url> (Streams & Torrents addon endpoint)') %>">
+            </span>
+            <div class="apiserver-help" style="float: left; width: 100%; margin-top: 8px; margin-bottom: 24px; padding-left: 158px; box-sizing: border-box;">
+                <p class="help-desc" style="color: rgba(255, 255, 255, 0.5); font-size: 11.5px; margin-bottom: 8px; line-height: 1.4;">
+                    * <%= i18n.__("Streams Provider must follow the Stremio Stream Protocol (e.g. GET /stream/movie/{id}.json)") %>
+                </p>
+                <div class="help-example" style="background: rgba(0, 0, 0, 0.6); border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 6px; padding: 12px 16px; max-width: 580px; box-sizing: border-box; -webkit-user-select: text; user-select: text;">
+                    <div style="font-size: 10.5px; font-weight: bold; color: #a0a6b5; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px;">
+                        <%= i18n.__("Expected JSON Response Structure:") %>
+                    </div>
+                    <pre style="margin: 0; padding: 0; background: transparent; border: 0; font-family: 'Consolas', 'Courier New', monospace; font-size: 11.5px; line-height: 1.45; color: #e6edf3; white-space: pre; overflow-x: auto; display: block;"><code style="font-family: inherit; font-size: inherit; color: inherit; display: block; background: transparent; border: 0; padding: 0; margin: 0;">{
+  <font color="#79b8ff">"streams"</font>: [
+    {
+      <font color="#79b8ff">"name"</font>: <font color="#9ecbfe">"1080p"</font>,
+      <font color="#79b8ff">"title"</font>: <font color="#9ecbfe">"Movie.Title.1080p.BluRay\n💾 2.1 GB 👥 120"</font>,
+      <font color="#79b8ff">"infoHash"</font>: <font color="#9ecbfe">"4a5b6c7d8e9f0123456789abcdef0123456789ab"</font>,
+      <font color="#79b8ff">"fileIdx"</font>: <font color="#ffab70">0</font>
+    }
+  ]
+}</code></pre>
                 </div>
-            </span>
-            <span id="apiserver_info">
-                <em>* <%= i18n.__("You can add multiple API Servers separated with a , from which it will select randomly (*for load balancing) until it finds the first available") %></em>
-            </span>
-            <span>
-                <input class="settings-checkbox" name="dhtEnable" id="dhtEnable" type="checkbox" <%=(Settings.dhtEnable? "checked='checked'":"")%>>
-                <label class="settings-label" for="dhtEnable"><%= i18n.__("Automatically update the API Server URLs") %></label>
-                <i class="update-dht fa fa-rotate tooltipped" data-toggle="tooltip" data-placement="auto" title="<%= i18n.__("Check for updates") %>"></i>
-            </span>
+            </div>
         </div>
     </section>
 

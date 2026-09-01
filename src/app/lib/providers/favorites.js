@@ -49,8 +49,14 @@
 
         if (filters.sorter === 'rating') {
             sorted = items.sort(function (a, b) {
-                var a_rating = a.type === 'bookmarkedmovie' ? a.rating : (a.rating.percentage / 10);
-                var b_rating = b.type === 'bookmarkedmovie' ? b.rating : (b.rating.percentage / 10);
+                var getRating = function (item) {
+                    if (!item || !item.rating) return 0;
+                    if (typeof item.rating === 'number') return item.rating;
+                    if (typeof item.rating === 'object' && item.rating.percentage) return item.rating.percentage / 10;
+                    return parseFloat(item.rating) || 0;
+                };
+                var a_rating = getRating(a);
+                var b_rating = getRating(b);
                 return filters.order === -1 ? b_rating - a_rating : a_rating - b_rating;
             });
         }
@@ -111,12 +117,17 @@
     };
 
     var show_fetch_wrapper = async function (imdb_id) {
-        let showProvider = App.Config.getProviderForType('tvshow')[0];
+        let showProvider = (imdb_id && imdb_id.startsWith('kitsu:'))
+            ? App.Config.getProviderForType('anime')[0]
+            : App.Config.getProviderForType('tvshow')[0];
         return showProvider.detail(imdb_id, {
             contextLocale: App.settings.contentLanguage || App.settings.language
         }).then(function (show) {
+            if (!show) return show;
             show.type = 'show';
-            show.country.toLowerCase() === 'jp' ? show.title = show.slug.replace(/-/g, ' ').capitalizeEach() : null;
+            if (show.country && show.country.toLowerCase() === 'jp' && show.slug) {
+                show.title = show.slug.replace(/-/g, ' ').capitalizeEach();
+            }
             return show;
         }).catch((error) => {});
     };
@@ -148,9 +159,12 @@
             if (movie.type === 'movie') {
                 // its a movie
                 const promise = movie_fetch_func(movie.imdb_id).then(function (data) {
-                    if (data && shouldMark) {
+                    if (!data) return data;
+                    if (shouldMark) {
                         data.type = 'bookmarkedmovie';
                     }
+                    data.imdb = data.imdb_id;
+                    data.poster = (data.images && data.images.poster) || data.poster || data.image || data.cover || '';
                     return data;
                 });
                 movieList.push(promise);
@@ -164,11 +178,12 @@
                     WseriesList.push(movie.imdb_id);
                 }
                 const promise = show_fetch_func(movie.imdb_id).then(function (data) {
-                    if (data && shouldMark) {
+                    if (!data) return data;
+                    if (shouldMark) {
                         data.type = 'bookmarkedshow';
                     }
-                    data ? data.imdb = data.imdb_id : null;
-                    data ? data.poster = data.images.poster : null;
+                    data.imdb = data.imdb_id;
+                    data.poster = (data.images && data.images.poster) || data.poster || data.image || data.cover || '';
                     return data;
                 });
                 movieList.push(promise);

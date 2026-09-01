@@ -17,12 +17,12 @@
         },
 
         ui: {
-          covers: '.cover-imgs',
-          defaultCover: '.cover',
-          cover: '.cover',
-          overlay: '.cover-overlay',
-          bookmarkIcon: '.actions-favorites',
-          watchedIcon: '.actions-watched'
+            covers: '.cover-imgs',
+            defaultCover: '.cover',
+            cover: '.cover',
+            overlay: '.cover-overlay',
+            bookmarkIcon: '.actions-favorites',
+            watchedIcon: '.actions-watched'
         },
         events: {
             'click .actions-favorites': 'toggleFavorite',
@@ -95,7 +95,7 @@
                 return;
             }
             var date = new Date();
-            var today = ('0' + (date.getMonth() + 　1)).slice(-2) + ('0' + (date.getDate())).slice(-2);
+            var today = ('0' + (date.getMonth() + 1)).slice(-2) + ('0' + (date.getDate())).slice(-2);
             if (today === '0401') { //april's fool
                 var title = this.model.get('title');
                 var titleArray = title.split(' ');
@@ -172,28 +172,28 @@
         loadImage: function () {
             var noimg = 'images/posterholder.png';
             var poster = this.model.get('image');
-            if (!poster && this.model.get('images') && this.model.get('images').poster){
+            if (!poster && this.model.get('images') && this.model.get('images').poster) {
                 poster = this.model.get('images').poster;
             } else if (this.model.get('poster')) {
                 poster = this.model.get('poster');
             } else {
                 var imdb = this.model.get('imdb_id'),
-                api_key = Settings.tmdb.api_key,
-                movie = (function () {
-                    var tmp = null;
-                    $.ajax({
-                        url: 'http://api.themoviedb.org/3/movie/' + imdb + '?api_key=' + api_key + '&append_to_response=videos',
-                        type: 'get',
-                        dataType: 'json',
-                        timeout: 5000,
-                        async: false,
-                        global: false,
-                        success: function (data) {
-                            tmp = data;
-                        }
-                    });
-                    return tmp;
-                }());
+                    api_key = Settings.tmdb.api_key,
+                    movie = (function () {
+                        var tmp = null;
+                        $.ajax({
+                            url: 'http://api.themoviedb.org/3/movie/' + imdb + '?api_key=' + api_key + '&append_to_response=videos',
+                            type: 'get',
+                            dataType: 'json',
+                            timeout: 5000,
+                            async: false,
+                            global: false,
+                            success: function (data) {
+                                tmp = data;
+                            }
+                        });
+                        return tmp;
+                    }());
                 poster = movie && movie.poster_path ? 'http://image.tmdb.org/t/p/w500' + movie.poster_path : noimg;
                 this.model.set('poster', poster);
                 !this.model.get('synopsis') && movie && movie.overview ? this.model.set('synopsis', movie.overview) : null;
@@ -239,15 +239,15 @@
 
             var realtype = this.model.get('type');
             var itemtype = realtype.replace('bookmarked', '');
-            var providerType = itemtype === 'show' ? 'tvshow' : itemtype;
-            var providers = {torrent:App.Config.getProviderForType(providerType)[0]};
+            var providerType = itemtype === 'show' ? (this.model.get('imdb_id') && this.model.get('imdb_id').startsWith('kitsu:') ? 'anime' : 'tvshow') : itemtype;
+            var providers = { torrent: App.Config.getProviderForType(providerType)[0] };
             this.model.set('providers', providers);
             var id = this.model.get(this.model.idAttribute);
 
             var promises = Object.values(providers).map(function (p) {
-              if (realtype === 'show') {
-                p = providers.torrent;
-              }
+                if (realtype === 'show') {
+                    p = providers.torrent;
+                }
                 if (!p.detail) {
                     return false;
                 }
@@ -262,8 +262,8 @@
             function allSettled(promises) {
                 var wrappedPromises = promises.map(
                     p => Promise.resolve(p)
-                        .then(val => ({ ok: true, value: val }),                                                err => ({ ok: false, reason: err })
-                             ));
+                        .then(val => ({ ok: true, value: val }), err => ({ ok: false, reason: err })
+                        ));
                 return Promise.all(wrappedPromises);
             }
 
@@ -287,7 +287,7 @@
                 // this allows for much more than sub providers (language,
                 // art, metadata) but is a little more fragile.
                 var data = results.reduce(function (a, c) {
-                    return Object.assign (a, c);
+                    return Object.assign(a, c);
                 }, {});
 
                 // load details
@@ -341,7 +341,9 @@
                 provider = this.model.get('providers').torrent;
             } else {
                 if (itemtype === 'show') {
-                    provider = App.Config.getProviderForType('tvshow')[0];
+                    provider = (imdb && imdb.startsWith('kitsu:'))
+                        ? App.Config.getProviderForType('anime')[0]
+                        : App.Config.getProviderForType('tvshow')[0];
                 } else {
                     provider = App.Config.getProviderForType('movie')[0];
                 }
@@ -390,7 +392,7 @@
             var itemtype = this.model.get('type');
             var bookmarked = this.model.get('bookmarked');
             var delCache = (function (e) {
-                var id = window.setTimeout(function() {}, 0);
+                var id = window.setTimeout(function () { }, 0);
                 while (id--) { window.clearTimeout(id); }
                 App.vent.trigger('notification:close');
                 this.toggleFavorite(e);
@@ -424,17 +426,17 @@
                         });
                     }
                 }.bind(this)).then(function () {
-                        var id = window.setTimeout(function() {}, 0);
-                        while (id--) { window.clearTimeout(id); }
-                        $('.notification_alert').stop();
-                        App.vent.trigger('notification:close');
-                        App.vent.trigger('notification:show', new App.Model.Notification({
-                            title: '',
-                            body: '<font size="3">' + this.model.get('title') + ' (' + this.model.get('year') + ')' + '</font><br>' + i18n.__('was removed from bookmarks'),
-                            autoclose: true,
-                            type: 'info',
-                            buttons: [{ title: i18n.__('Undo'), action: delCache }]
-                        }));
+                    var id = window.setTimeout(function () { }, 0);
+                    while (id--) { window.clearTimeout(id); }
+                    $('.notification_alert').stop();
+                    App.vent.trigger('notification:close');
+                    App.vent.trigger('notification:show', new App.Model.Notification({
+                        title: '',
+                        body: '<font size="3">' + this.model.get('title') + ' (' + this.model.get('year') + ')' + '</font><br>' + i18n.__('was removed from bookmarks'),
+                        autoclose: true,
+                        type: 'info',
+                        buttons: [{ title: i18n.__('Undo'), action: delCache }]
+                    }));
                 }.bind(this));
             } else {
                 if (this.ui.bookmarkIcon[0].isConnected) {

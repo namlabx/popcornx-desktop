@@ -44,7 +44,7 @@
     <p class="seasons data">
         <%= i18n.__(item_data) %>
     </p>
-<% } else if (typeof num_seasons !== 'undefined') { %>
+<% } else if (typeof num_seasons !== 'undefined' && num_seasons) { %>
     <p class="seasons">
         <%= num_seasons %> <%= num_seasons == 1 ? i18n.__("Season") : i18n.__("Seasons") %>
     </p>

@@ -44,7 +44,9 @@
                 Common.openOrClipboardLink(e, Settings.projectUrl, i18n.__('link'), true);
             } else {
                 let updateMode = e === 'enable' ? e : (e ? 'about' : '');
-                App.Updater.onlyNotification(updateMode);
+                if (App.Updater && typeof App.Updater.onlyNotification === 'function') {
+                    App.Updater.onlyNotification(updateMode);
+                }
             }
         },
 

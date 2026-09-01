@@ -1,7 +1,7 @@
 var memoize = require('memoizee');
 var _ = require('lodash');
 const i18n = require('i18n');
-const socksProxyAgent = require( 'socks-proxy-agent' );
+const socksProxyAgent = require('socks-proxy-agent');
 
 String.prototype.capitalizeEach = function () {
   return this.replace(/\w*/g, function (txt) {
@@ -9,9 +9,9 @@ String.prototype.capitalizeEach = function () {
   });
 };
 
-var processArgs = function(config, args) {
+var processArgs = function (config, args) {
   var newArgs = {};
-  Object.keys(config.args).map(function(k) {
+  Object.keys(config.args).map(function (k) {
     if (!args || !args[k]) {
       console.error('value', k, 'was not provided');
       return;
@@ -62,10 +62,10 @@ class Provider {
     this.proxy = '';
 
     this.detail = memoize(
-        this.detail.bind(this),
-        _.extend(memopts, {
-          async: true
-        })
+      this.detail.bind(this),
+      _.extend(memopts, {
+        async: true
+      })
     );
 
     if (args.apiURL) { this.setApiUrls(args.apiURL); }
@@ -92,15 +92,14 @@ class Provider {
     if (index + 1 >= this.apiURL.length) {
       throw err || new Error('Status Code is above 400');
     }
-    return this._get(index+1, uri);
+    return this._get(index + 1, uri);
   }
 
-  buildRequest(baseUrl, uri)
-  {
+  buildRequest(baseUrl, uri) {
     let options = {
       headers: {
         'User-Agent':
-            'Mozilla/5.0 (Linux) AppleWebkit/534.30 (KHTML, like Gecko) PT/4.4.0'
+          'Mozilla/5.0 (Linux) AppleWebkit/534.30 (KHTML, like Gecko) PT/4.4.0'
       }
     };
 
@@ -128,12 +127,11 @@ class Provider {
     this.apiURL = _.shuffle(urls);
   }
 
-  filters() {return Promise.resolve({});}
+  filters() { return Promise.resolve({}); }
 
   feature(name) { return false; }
 
-  formatFiltersFromServer(sorters, data)
-  {
+  formatFiltersFromServer(sorters, data) {
     let filters = {
       genres: {},
       sorters: {},
@@ -174,7 +172,7 @@ class Provider {
     if (index + 1 >= this.apiURL.length) {
       throw err || new Error('Status Code is above 400');
     }
-    return this.getBin(index+1, uri);
+    return this.getBin(index + 1, uri);
   }
 }
 
@@ -203,49 +201,49 @@ function randomArray(a) {
   return a[Math.ceil(Math.random(a.length))];
 }
 
-Provider.prototype.resolveStream = function(src, config, data) {
+Provider.prototype.resolveStream = function (src, config, data) {
   warnDefault('resolveStream', 'multiple languages');
   return src;
 };
 
-Provider.prototype.random = function() {
+Provider.prototype.random = function () {
   console.log('WTDGD');
   warnDefault('random', 'faster random');
   return this.fetch
     .bind(this)()
-    .then(function(data) {
+    .then(function (data) {
       return randomArray(data.results);
     });
 };
 
-Provider.prototype.extractIds = function(items) {
+Provider.prototype.extractIds = function (items) {
   warnDefault('extractIds');
   return _.map(items.results, this.config.uniqueId);
 };
 
-Provider.prototype._fetch = function(filters) {
+Provider.prototype._fetch = function (filters) {
   filters = filters || {};
   filters.toString = this.toString;
   var promise = this.memfetch.bind(this)(filters),
     _this = this;
-  promise.catch(function(error) {
+  promise.catch(function (error) {
     // Delete the cached result if we get an error so retry will work
     _this.memfetch.delete(filters);
   });
   return promise;
 };
 
-Provider.prototype.toString = function(arg) {
+Provider.prototype.toString = function (arg) {
   return JSON.stringify(this);
 };
 
-Provider.prototype.parseArgs = function(name) {
+Provider.prototype.parseArgs = function (name) {
   var tokenize = name.split('?');
 
   // XXX:reimplement querystring.parse to not escape
   var args = {};
   tokenize[1] &&
-    tokenize[1].split('&').map(function(v) {
+    tokenize[1].split('&').map(function (v) {
       var m = v.split('=');
       args[m[0]] = m[1];
     });

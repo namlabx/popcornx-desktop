@@ -96,6 +96,27 @@
             if (!Settings.filters) {
                 $('.reset-current-filter').addClass('disabled').attr('data-original-title', '');
             }
+
+            if (this.model && this.model.get('focus')) {
+                var focusId = this.model.get('focus');
+                setTimeout(function () {
+                    var el = document.getElementById(focusId);
+                    if (el) {
+                        el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        el.focus();
+                        $(el).css({
+                            'border-color': '#4eee30',
+                            'box-shadow': '0 0 8px rgba(78, 238, 48, 0.8)'
+                        });
+                        setTimeout(function () {
+                            $(el).css({
+                                'border-color': '',
+                                'box-shadow': ''
+                            });
+                        }, 3000);
+                    }
+                }, 250);
+            }
         },
 
         onRender: function () {
@@ -273,6 +294,9 @@
                 case 'customMoviesServer':
                 case 'customSeriesServer':
                 case 'customAnimeServer':
+                case 'cinemetaUrl':
+                case 'kitsuUrl':
+                case 'torrentioUrl':
                     apiServerChanged = true;
                     value = field.val().replace(/\s+/g, '');
                     if (value && value.slice(-1) !== '/') {
@@ -443,6 +467,10 @@
 
             // update active session
             App.settings[field.attr('name')] = value;
+            Settings[field.attr('name')] = value;
+            if (typeof global !== 'undefined' && global.Settings) {
+                global.Settings[field.attr('name')] = value;
+            }
 
             if (apiServerChanged) {
                 App.Providers.updateConnection(App.settings['customMoviesServer'], App.settings['customSeriesServer'], App.settings['customAnimeServer'], App.settings['proxyServer']);
@@ -493,6 +521,12 @@
                     break;
                 case 'protocolEncryption':
                 case 'maxUdpReqLimit':
+                case 'cinemetaUrl':
+                case 'kitsuUrl':
+                case 'torrentioUrl':
+                case 'customMoviesServer':
+                case 'customSeriesServer':
+                case 'customAnimeServer':
                     this.alertMessageSuccess(true);
                     break;
                 case 'downloadLimit':
@@ -729,12 +763,16 @@
 
         updateDht: function(e) {
             let updateMode = e === 'enable' ? e : (e ? 'manual' : '');
-            App.Updater.updateDHT(updateMode);
+            if (App.Updater && typeof App.Updater.updateDHT === 'function') {
+                App.Updater.updateDHT(updateMode);
+            }
         },
 
         updateApp: function(e) {
             let updateMode = e === 'enable' ? e : (e ? 'manual' : '');
-            App.Updater.onlyNotification(updateMode);
+            if (App.Updater && typeof App.Updater.onlyNotification === 'function') {
+                App.Updater.onlyNotification(updateMode);
+            }
         },
 
         connectTrakt: function (e) {

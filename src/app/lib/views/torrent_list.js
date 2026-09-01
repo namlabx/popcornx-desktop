@@ -1,4 +1,4 @@
-(function (App){
+(function (App) {
     'use strict';
 
     App.View.TorrentList = Marionette.View.extend({
@@ -13,20 +13,26 @@
             'contextmenu .item-row td:not(.provider)': 'copyMagnet',
         },
 
-        initialize: function() {
+        initialize: function () {
             this.model.set('torrents', []);
             this.icons = App.Providers.get('Icons');
         },
 
         onAttach: function () {
             this.model.set('torrents', []);
-            this.model.get('promise').then((data) => this.updateTorrents(data));
+            this.model.get('promise')
+                .then((data) => this.updateTorrents(data))
+                .catch((err) => {
+                    console.error('DEBUG: Torrent list promise rejected:', err);
+                    this.updateTorrents([]);
+                });
         },
 
         updateTorrents: function (torrents) {
+            console.log('DEBUG TORRENTS:', torrents);
             const provider = this.model.get('provider');
             let loadIcons = [];
-            for(let torrent of torrents) {
+            for (let torrent of torrents) {
                 loadIcons.push(this.icons.getLink(provider, torrent.provider)
                     .then((icon) => torrent.icon = icon || '/src/app/images/icons/' + torrent.provider + '.png')
                     .catch((error) => { !torrent.icon ? torrent.icon = '/src/app/images/icons/' + torrent.provider + '.png' : null; }));
@@ -47,19 +53,19 @@
             });
         },
 
-        getTorrent: function(node) {
+        getTorrent: function (node) {
             const key = $(node).parents('tr').data('key');
             return this.model.get('torrents')[key];
         },
 
-        openSource: function(e) {
+        openSource: function (e) {
             const torrent = this.getTorrent(e.target);
             if (torrent.source) {
                 Common.openOrClipboardLink(e, torrent.source, i18n.__('source link'));
             }
         },
 
-        copyMagnet: function(e) {
+        copyMagnet: function (e) {
             const torrent = this.getTorrent(e.target);
             const magnetLink = torrent.url.split('&tr=')[0] + _.union(decodeURIComponent(torrent.url).replace(/\/announce/g, '').split('&tr=').slice(1), Settings.trackers.forced.toString().replace(/\/announce/g, '').split(',')).map(t => `&tr=${t}/announce`).join('');
             Common.openOrClipboardLink(e, magnetLink, i18n.__('magnet link'));
@@ -88,9 +94,10 @@
                 imdb_id: $('.list .items .item.selected')[0] ? $('.list .items .item.selected')[0].dataset.imdbId : null,
                 season: $('.tab-episode.active')[0] ? $('.tab-episode.active')[0].attributes['data-season'].value : null,
                 episode: $('.tab-episode.active')[0] ? $('.tab-episode.active')[0].attributes['data-episode'].value : null,
-                device: App.Device.Collection.selected
+                device: App.Device.Collection.selected,
+                fileIdx: torrent.fileIdx !== undefined ? torrent.fileIdx : undefined
             });
-            App.vent.trigger('stream:start', torrentStart, download ? 'downloadOnly' : '' );
+            App.vent.trigger('stream:start', torrentStart, download ? 'downloadOnly' : '');
             if (download) {
                 if (Settings.showSeedboxOnDlInit) {
                     App.previousview = App.currentview;

@@ -439,8 +439,10 @@ var Database = {
             })
             .then(function () {
                 if (AdvSettings.get('disclaimerAccepted')) {
-                    App.Updater.updateDHTOld();
-                    if (Settings.updateNotification) {
+                    if (App.Updater && typeof App.Updater.updateDHTOld === 'function') {
+                        App.Updater.updateDHTOld();
+                    }
+                    if (Settings.updateNotification && App.Updater && typeof App.Updater.onlyNotification === 'function') {
                         App.Updater.onlyNotification();
                     }
                 }

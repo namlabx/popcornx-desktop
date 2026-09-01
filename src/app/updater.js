@@ -1,7 +1,13 @@
 (function (App) {
     'use strict';
-    var DHT = require('bittorrent-dht');
-    var ed = require('bittorrent-dht-sodium');
+    var DHT;
+    var ed;
+    try {
+        DHT = require('bittorrent-dht');
+        ed = require('bittorrent-dht-sodium');
+    } catch (err) {
+        console.warn('DHT updater libraries could not be loaded:', err);
+    }
 
     function Updater(options) {
         if (!(this instanceof Updater)) {
@@ -65,7 +71,7 @@
 
     Updater.updateDHT = function (e) {
         const self = this;
-        if (!Settings.dht) {
+        if (!Settings.dht || !DHT || !ed) {
             if (e && e !== 'urls') {
                 self.alertIcon('error');
                 self.alertMessage('error');
@@ -119,7 +125,7 @@
     }
 
     Updater.updateDHTOld = function () {
-        if (!Settings.dht) {
+        if (!Settings.dht || !DHT || !ed) {
             return;
         }
         let data = AdvSettings.get('dhtData');

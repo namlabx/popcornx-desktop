@@ -71,18 +71,24 @@ Settings.providers = {
 Settings.trackers = {
   blacklisted: ['demonii'],
   forced: [
+    // UDP trackers
     'udp://tracker.opentrackr.org:1337',
-    'udp://tracker.openbittorrent.com:1337',
+    'udp://tracker.openbittorrent.com:6969',
     'udp://p4p.arenabg.com:1337',
     'udp://exodus.desync.com:6969',
     'udp://tracker.torrent.eu.org:451',
-    'udp://tracker-udp.gbitt.info:80',
     'udp://open.stealth.si:80',
     'udp://tracker.dler.org:6969',
     'udp://explodie.org:6969',
     'udp://tracker.therarbg.to:6969',
     'udp://tracker.bittor.pw:1337',
     'udp://tr4ck3r.duckdns.org:6969',
+    'udp://tracker-udp.gbitt.info:80',
+    // HTTP tracker
+    'http://tracker.openbittorrent.com:80',
+    // WebSocket trackers (for WebTorrent/browser)
+    'wss://tracker.btorrent.xyz',
+    'wss://tracker.fastcast.nz',
     'wss://tracker.openwebtorrent.com'
   ]
 };
@@ -180,6 +186,9 @@ Settings.httpApiPassword = 'popcorn';
 Settings.customMoviesServer = '';
 Settings.customSeriesServer = '';
 Settings.customAnimeServer = '';
+Settings.cinemetaUrl = 'https://v3-cinemeta.strem.io';
+Settings.kitsuUrl = 'https://anime-kitsu.strem.fun';
+Settings.torrentioUrl = '';
 Settings.dhtEnable = '';
 
 // Connection
@@ -262,7 +271,7 @@ var ScreenResolution = {
 };
 
 var AdvSettings = {
-  get: function(variable) {
+  get: function (variable) {
     if (typeof Settings[variable] !== 'undefined') {
       return Settings[variable];
     }
@@ -270,21 +279,21 @@ var AdvSettings = {
     return false;
   },
 
-  set: function(variable, newValue) {
+  set: function (variable, newValue) {
     Database.writeSetting({
       key: variable,
       value: newValue
-    }).then(function() {
+    }).then(function () {
       Settings[variable] = newValue;
     });
   },
 
-  setup: function() {
+  setup: function () {
     AdvSettings.performUpgrade();
     return AdvSettings.getHardwareInfo();
   },
 
-  getHardwareInfo: function() {
+  getHardwareInfo: function () {
     if (/64/.test(process.arch)) {
       AdvSettings.set('arch', 'x64');
     } else {
@@ -309,9 +318,18 @@ var AdvSettings = {
     return Promise.resolve(true);
   },
 
-  performUpgrade: function() {
+  performUpgrade: function () {
     // This gives the official version (the package.json one)
     AdvSettings.set('version', nw.App.manifest.version);
     AdvSettings.set('releaseName', nw.App.manifest.releaseName);
   }
 };
+
+if (typeof global !== 'undefined') {
+  global.Settings = Settings;
+  global.AdvSettings = AdvSettings;
+}
+if (typeof window !== 'undefined') {
+  window.Settings = Settings;
+  window.AdvSettings = AdvSettings;
+}

@@ -22,7 +22,9 @@
             AdvSettings.set('updateNotification', document.getElementById('updateNotificationFR').checked ? true : false);
             AdvSettings.set('disclaimerAccepted', 1);
             if (document.getElementById('dhtEnableFR').checked) {
-                App.Updater.updateDHT();
+                if (App.Updater && typeof App.Updater.updateDHT === 'function') {
+                    App.Updater.updateDHT();
+                }
                 App.vent.trigger('notification:show', new App.Model.Notification({
                     title: i18n.__('Please wait') + '...',
                     body: i18n.__('Updating the API Server URLs'),
@@ -30,7 +32,9 @@
                     type: 'danger'
                 }));
             } else {
-                App.Updater.updateDHTOld();
+                if (App.Updater && typeof App.Updater.updateDHTOld === 'function') {
+                    App.Updater.updateDHTOld();
+                }
             }
             App.vent.trigger('disclaimer:close');
         },
